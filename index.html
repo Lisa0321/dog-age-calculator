@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>狗狗年齡換算器</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f7f7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .calculator {
+      background-color: #fff;
+      padding: 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .calculator img {
+      width: 80%;
+      max-width: 200px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      width: 100%;
+    }
+
+    input[type="text"], input[type="date"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      text-align: center;
+    }
+
+    .history {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #555;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="calculator-title">狗狗年齡換算器</h1>
+
+  <div class="calculator">
+    <img src="https://hackmd.io/_uploads/Hyc4usZlWe.png" alt="裝飾圖片">
+
+    <label for="dogName">計算機名稱（狗狗名字）</label>
+    <input type="text" id="dogName" placeholder="輸入狗狗名字">
+
+    <label for="birthDate">出生日期</label>
+    <input type="date" id="birthDate">
+
+    <button id="calculateBtn">開始計算</button>
+
+    <div class="result" id="result"></div>
+    <div class="history" id="history"></div>
+  </div>
+
+  <script>
+    const dogNameInput = document.getElementById('dogName');
+    const birthDateInput = document.getElementById('birthDate');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const resultDiv = document.getElementById('result');
+    const historyDiv = document.getElementById('history');
+    const calculatorTitle = document.getElementById('calculator-title');
+
+    // 顯示歷史紀錄
+    function displayHistory() {
+      const history = JSON.parse(localStorage.getItem('dogAgeHistory') || '[]');
+      if(history.length === 0) {
+        historyDiv.innerHTML = '尚無歷史紀錄';
+      } else {
+        historyDiv.innerHTML = '歷史紀錄：<br>' + history.map(item => 
+          `${item.name} 的人類年齡是 ${item.age} 歲（${item.date}）`
+        ).join('<br>');
+      }
+    }
+
+    displayHistory();
+
+    calculateBtn.addEventListener('click', () => {
+      const name = dogNameInput.value.trim();
+      const birthDate = birthDateInput.value;
+
+      if(!name) {
+        alert('請輸入狗狗名字');
+        return;
+      }
+      if(!birthDate) {
+        alert('請選擇出生日期');
+        return;
+      }
+
+      calculatorTitle.textContent = `${name} 的年齡換算器`;
+
+      const birth = new Date(birthDate);
+      const today = new Date();
+
+      if(birth > today) {
+        alert('出生日期不能是未來的日期');
+        return;
+      }
+
+      // 計算狗狗實際年齡（年）
+      const diffMs = today - birth;
+      const diffDays = diffMs / (1000 * 60 * 60 * 24);
+      const dogAgeYears = diffDays / 365.25;
+
+      // 科學換算公式：humanAge = 16 * ln(dogAgeYears) + 31
+      let humanAge;
+      if(dogAgeYears <= 0) {
+        humanAge = 0;
+      } else {
+        humanAge = 16 * Math.log(dogAgeYears) + 31;
+      }
+
+      humanAge = Math.round(humanAge * 10) / 10; // 四捨五入到小數
+
+      resultDiv.textContent = `${name} 的人類年齡大約是 ${humanAge} 歲`;
+
+      // 儲存到 localStorage
+      const history = JSON.parse(localStorage.getItem('dogAgeHistory') || '[]');
+      history.unshift({
+        name: name,
+        age: humanAge,
+        date: new Date().toLocaleString()
+      });
+      localStorage.setItem('dogAgeHistory', JSON.stringify(history));
+
+      displayHistory();
+    });
+  </script>
+</body>
+</html>
